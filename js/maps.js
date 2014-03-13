@@ -54,31 +54,7 @@ function polygon2geoJsonFeature(polygon){
 console.log("data is: ", data);
 
 
-
-	    var latLng = new google.maps.LatLng(
-		this.model.get("lat"),
-		this.model.get("lng")
-	    );
-
-	goto_user_location: function() {
-	    
-if(navigator.geolocation !== false) { 
-		var view = this;
-		var gotoLocation = function(position) {
-		    if(position.coords.accuracy <= 500000) {
-			var your_loc = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-			view.Gmap.panTo(your_loc);
-			view.Gmap.setZoom(15);
-		    }
-		};
-		var errHandler = function(positionError) {
-		    alert("Error finding your position...");
-		}
-		navigator.geolocation.getCurrentPosition(gotoLocation,errHandler,{enableHighAccuracy: true,timeout: 5000});
-	    }
-	},
-	
-
+	   
   // transform  the data into lt long
 
 
