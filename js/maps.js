@@ -11,9 +11,6 @@ var map = new L.Map("map", {
 });
 map.addLayer(layer);
 
-var corners_of_map = [[42.,-87.75],
-		      [41.75,-87.55]];
-
 var svg = d3.select(map.getPanes().overlayPane).append("svg");
 var g     = svg.append("g").attr("class", "leaflet-zoom-hide");
 
@@ -53,10 +50,36 @@ function polygon2geoJsonFeature(polygon){
     };
 }
 
+//example
+console.log("data is: ", data);
 
-d3.csv("data/meetup.csv", function(data){
-    // so that each data point remembers it place in the ordering
-    // transform the data into lat long
+
+
+	    var latLng = new google.maps.LatLng(
+		this.model.get("lat"),
+		this.model.get("lng")
+	    );
+
+	goto_user_location: function() {
+	    
+if(navigator.geolocation !== false) { 
+		var view = this;
+		var gotoLocation = function(position) {
+		    if(position.coords.accuracy <= 500000) {
+			var your_loc = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+			view.Gmap.panTo(your_loc);
+			view.Gmap.setZoom(15);
+		    }
+		};
+		var errHandler = function(positionError) {
+		    alert("Error finding your position...");
+		}
+		navigator.geolocation.getCurrentPosition(gotoLocation,errHandler,{enableHighAccuracy: true,timeout: 5000});
+	    }
+	},
+	
+
+  // transform  the data into lt long
 
 
 

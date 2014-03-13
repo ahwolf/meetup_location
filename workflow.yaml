@@ -8,8 +8,13 @@ input_name: data/sp500.html
 tasks:
 # create some data to analyze.
   -
-    creates: data/city_names.txt
+    creates: data/city_names.json
     command:
       - mkdir -p $(dirname {{creates}})
-      - python extract_city_names.py
-
+      - python code/extract_city_names.py {{creates}}
+  -
+    creates: data/data.js
+    depends: data/city_names.json
+    command:
+      - mkdir -p $(dirname {{creates}})
+      - python code/make_data.py {{depends}} {{creates}}
