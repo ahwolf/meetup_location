@@ -1,12 +1,12 @@
 var layer = new L.StamenTileLayer("toner");
 
-var lat = 41.88362062793376, 
-    lon = -87.64411926269531; // the coordinates of Chicago
+var lat = 42.36837, 
+    lon = -83.35270969999999; // the coordinates of Livonia, MI
 
 var map = new L.Map("map", {
     center: new L.LatLng(lat,lon),
-    zoom: 12,
-    minZoom: 11,
+    zoom: 10,
+    minZoom: 10,
     maxZoom: 15,
     doubleClickZoom: false,
 });
@@ -29,7 +29,7 @@ function latLng2point(x,y){
     return map.latLngToLayerPoint(new L.LatLng(y, x));
 }
 function d2point(d){
-    return latLng2point(d.longitude,d.latitude);
+    return latLng2point(d.lon,d.lat);
 }
 
 var transform = d3.geo.transform({point: projectPoint});
@@ -53,7 +53,13 @@ function polygon2geoJsonFeature(polygon){
 
 //example
 console.log("data is: ", data);
-
+g.selectAll("circle")
+	.data(data)
+	.enter().append("circle")
+	.attr("cx",function(d){console.log(d2point(d)); return d2point(d).x; })
+	.attr("cy",function(d){return d2point(d).y; })
+	.attr("r", function(d){ return Math.pow(d.count,.5)*5;})
+	.attr("fill", "red");
 
 	   
   // transform  the data into lt long
