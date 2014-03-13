@@ -1,0 +1,15 @@
+# This is an attempt to use the workflow
+# We will take a csv from meetup and convert it into a json of lat, lon points
+# with the number of occurences
+---
+input_name: data/sp500.html
+
+
+tasks:
+# create some data to analyze.
+  -
+    creates: data/city_names.txt
+    command:
+      - mkdir -p $(dirname {{creates}})
+      - python extract_city_names.py
+

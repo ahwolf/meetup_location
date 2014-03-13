@@ -1,4 +1,3 @@
-// replace "toner" here with "terrain" or "watercolor"
 var layer = new L.StamenTileLayer("toner");
 var lat = 41.88362062793376, 
     lon = -87.64411926269531; // the coordinates of Chicago
@@ -17,28 +16,9 @@ var corners_of_map = [[42.,-87.75],
 
 var svg = d3.select(map.getPanes().overlayPane).append("svg");
 var g     = svg.append("g").attr("class", "leaflet-zoom-hide");
-var clips = svg.append("g").attr("id","point-clips");
-var svg_legend = d3.select("#legend").append("svg")
 
-var blues = colorbrewer.Blues[6].slice()
-blues[0] = "transparent"
 var side_length = 60;
 var padding = 1;
-// make the legend
-svg_legend.selectAll("rect")
-    .data(blues.slice(1,7))
-    .enter()
-    .append("rect")
-    .style("fill",function(d){return d;})
-    .attr("width", side_length)
-    .attr("height", side_length)
-    .attr("x", function(d,i){
-	return (padding + side_length)*i;})
-    .attr("y",0);
-svg_legend.selectAll("text")
-    .data([0,0,0])
-    .enter()
-    .append("text")
 
 // These are transformation functions for d3, that allow my lat long
 // data to interface with leaflet
@@ -57,9 +37,6 @@ function d2point(d){
 var transform = d3.geo.transform({point: projectPoint});
 var path = d3.geo.path().projection(transform);
 
-var station_detail = d3.select("#station_detail");
-station_detail.append("text")
-    .text("Mouse over a station: where do they go?");
 
 function polygon2geoJsonFeature(polygon){
     // geo_json polygons need to start and stop at the same point
@@ -68,14 +45,6 @@ function polygon2geoJsonFeature(polygon){
 	"type": "Feature",
 	"properties": {
 	    "name": polygon.point.name,
-	    "outCounts": $.parseJSON(polygon.point.outCounts),
-
-	    // keeps track of initial index, never changes.
-	    "index":polygon.point.index, 
-
-	    // keeps track of which tile should be on top. An int,
-	    // inititalized at 0. Each recoloring, this.top++
-	    "top":polygon.point.top,
 	},
 	"geometry": {
 	    "type": "Polygon",
@@ -84,61 +53,14 @@ function polygon2geoJsonFeature(polygon){
     };
 }
 
-function data2geo_json(data){
-    // makes the voronoi and returns a geo_json structure
 
-    polygons = voronoi(data); // this is the voronoi polygons
-    geo_json = {type: "FeatureCollection",
-		features: _.map(polygons, // this is not a geojson
-				// but a plane json.
-				// TODO:convert these back
-				// to the sphere....that
-				// might be difficult... ?
-				polygon2geoJsonFeature)
-	       };
-    return geo_json;
-}
-
-var voronoi = d3.geom.voronoi()
-    .x(function(d) { return d.x() })
-    .y(function(d) { return d.y() })
-
-function how_far_to_walk(){
-    // number of pixels ~= .6miles
-    return Math.pow(2,map.getZoom()-7);
-}
-
-d3.csv("data/Station_Data.csv", function(data){
+d3.csv("data/meetup.csv", function(data){
     // so that each data point remembers it place in the ordering
-    _.each(data,function(e,i){ 
-	e.longitude = +e.longitude;
-	e.latitude = +e.latitude;
-	e.index=i; // set index, never change it.
-	e.top=0;   // init top, it will change.
-	e.x = function(){ return d2point(e).x};
-	e.y = function(){ return d2point(e).y};
-    });
-    // get_totals(data);
-    // var colorScale = d3.scale.quantize()
-    // 	.domain(d3.extent(data, function(d){
-    // 	    return d.in_out;
-    // 	}))
-    // 	.range(blues);
+    // transform the data into lat long
 
-    global_data = data;
 
-    clips.selectAll("clipPath")
-	.data(data)
-	.enter().append("clipPath")
-	.attr("id", function(d, i) { return "clip-"+i;})
-	.append("circle")
-	.attr('cx', function(d) { 
-	    return d.x(); })
-	.attr('cy', function(d) { 
-	    return d.y(); })
-	.attr('r', how_far_to_walk);
 
-    g.selectAll(".centers")
+    g.selectAll("circle")
 	.data(data)
 	.enter()
 	.append("circle")
