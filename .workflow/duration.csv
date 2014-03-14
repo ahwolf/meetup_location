@@ -1,6 +1,8 @@
 data/centroids.json,0.8416790962219238
+data/json/,0.1356818675994873
+data/list_of_clusters.json,0.3676609992980957
 data/data.js,0.03744101524353027
 data/city_names.json,6.063471794128418
 data/city_names.txt,6.171074151992798
 data/single_centroid.json,0.06537914276123047
-js/data.js,0.0644829273223877
+js/data.js,0.06393003463745117

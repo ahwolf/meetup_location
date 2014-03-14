@@ -13,23 +13,24 @@ tasks:
       - mkdir -p $(dirname {{creates}})
       - python code/extract_city_names.py {{creates}}
   -
-    creates: data/centroids.json
+    creates: data/list_of_clusters.json
     depends: data/city_names.json
     command:
       - mkdir -p $(dirname {{creates}})
       - python code/kmeans.py {{depends}} {{creates}}
   -
-    creates: data/single_centroid.json
-    depends: data/city_names.json
+    creates: data/json/
+    depends: 
+      - data/city_names.json
+      - data/list_of_clusters.json
     command:
-      - mkdir -p $(dirname {{creates}})
-      - python code/geo_median.py {{depends}} {{creates}}
+      - mkdir -p {{creates}}
+      - python code/geo_median.py {{depends|join(' ')}} {{creates}}
   -
     creates: js/data.js
     depends: 
       - data/city_names.json
-      - data/centroids.json
-      - data/single_centroid.json
+      - data/json/
     command:
       - mkdir -p $(dirname {{creates}})
       - python code/make_data.py {{depends|join(' ')}} {{creates}}
