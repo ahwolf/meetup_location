@@ -3,11 +3,12 @@ var layer = new L.StamenTileLayer("toner");
 var lat = 42.36837, 
     lon = -83.35270969999999; // the coordinates of Livonia, MI
 
+
 var map = new L.Map("map", {
     center: new L.LatLng(lat,lon),
     zoom: 10,
     minZoom: 10,
-    maxZoom: 15,
+    maxZoom: 10,
     doubleClickZoom: false,
 });
 map.addLayer(layer);
@@ -15,6 +16,22 @@ map.addLayer(layer);
 var svg = d3.select(map.getPanes().overlayPane).append("svg");
 var g = svg.append("g").attr("class", "leaflet-zoom-hide");
 
+// get centroid/center of gravity
+// var total_count = d3.sum(data, function(d){return d.count})
+// var cent_x = d3.sum(data, function(d) {return d2point(d).x * d.count}) / total_count
+// var cent_y = d3.sum(data, function(d) {return d2point(d).y * d.count}) / total_count
+
+// var single_centroid = [{x: cent_x,
+// 								 			 	y: cent_y,
+// 								 			 	city: "Centroid",
+// 								 			 	count:""}];
+
+console.log("centroid is: ", single_centroid);
+
+
+
+var tip = d3.tip().attr('class', 'd3-tip').html(function(d) { return d.city + " " + d.count; });
+svg.call(tip)
 var side_length = 60;
 var padding = 1;
 
@@ -32,298 +49,141 @@ function d2point(d){
     return latLng2point(d.lon,d.lat);
 }
 
+function point2latLng(x,y){
+		return map.layerPointToLatLng(L.point(x,y));
+}
+
 var transform = d3.geo.transform({point: projectPoint});
 var path = d3.geo.path().projection(transform);
 
-
-function polygon2geoJsonFeature(polygon){
-    // geo_json polygons need to start and stop at the same point
-    polygon.push(polygon[0]) 
-    return {
-	"type": "Feature",
-	"properties": {
-	    "name": polygon.point.name,
-	},
-	"geometry": {
-	    "type": "Polygon",
-	    "coordinates": [polygon]
-	}
-    };
-}
+var points = _.map(data, function(d){
+	var xy_point = d2point(d);
+	return {x: xy_point.x,
+					y: xy_point.y,
+					count: d.count}
+});
+console.log(points);
+var drag = d3.behavior.drag()
+    .on("dragstart", dragstarted)
+    .on("drag", dragged)
+    .on("dragend", dragended);
 
 //example
-console.log("data is: ", data);
-g.selectAll("circle")
+var circle_colors = ["rgba(255,0,0,.8)", "rgba(0,255,0,.5)", "rgba(0,0,255,.5)"];
+
+g.selectAll(".member")
 	.data(data)
 	.enter().append("circle")
-	.attr("cx",function(d){console.log(d2point(d)); return d2point(d).x; })
+	.attr("class","member")
+	.attr("cx",function(d){return d2point(d).x; })
 	.attr("cy",function(d){return d2point(d).y; })
 	.attr("r", function(d){ return Math.pow(d.count,.5)*5;})
-	.attr("fill", "red");
+	.attr("fill", circle_colors[0])
+	.on('mouseover', tip.show)
+  .on('mouseout', tip.hide);
+
+g.selectAll(".centroid")
+	.data(single_centroid)
+	.enter().append("circle")
+	.attr("class","centroid")
+	.attr("cx",function(d){return d2point(d).x; })
+	.attr("cy",function(d){return d2point(d).y; })
+	.attr("r", 25)
+	.attr("fill", circle_colors[1])
+	.on('mouseover', tip.show)
+  .on('mouseout', tip.hide)
+  .call(drag);
+
+g.selectAll(".two_centroid")
+    .data(centroid)
+    .enter().append("circle")
+    .attr("class","two_centroid")
+    .attr("cx",function(d){return d2point(d).x; })
+    .attr("cy",function(d){return d2point(d).y; })
+    .attr("r", 20)
+    .attr("fill", circle_colors[2])
+    .on('mouseover', tip.show)
+	  .on('mouseout', tip.hide);
+
+// make the legend for the various circles
+
+var legend_svg = d3.select("#legend").append("svg");
+var circle_radius = 20;
+var padding = 10;
+legend_svg.selectAll("circle")
+		.data(circle_colors)
+    .enter().append("circle")
+    .attr("cx", circle_radius * 1.5)
+    .attr("cy", function(d, i) { return i*circle_radius*2.2 + circle_radius + padding; })
+    .attr("r", circle_radius)
+    .attr("fill", function(d) { return d; });
+
+var text_legend = ["Meetup data scientists", "Optimal single location", "Optimal dual locations"];
+legend_svg.selectAll("text")
+    .data(text_legend)
+    .enter().append("text")
+    .text(function(d) { return d; })
+    .attr("x", circle_radius * 3)
+    .attr("y", function(d, i) { return i*circle_radius*2.2 + circle_radius + padding + 6; })
+    .attr("font-family", "Helvetica, Arial, sans-serif")
+    .attr("font-size", "16px");
 
 	   
   // transform  the data into lt long
 
 
 
-//     g.selectAll("circle")
-// 	.data(data)
-// 	.enter()
-// 	.append("circle")
-// 	.attr("class","centers")
-// 	.attr('cx', function(d) { 
-// 	    return d.x(); })
-// 	.attr('cy', function(d) { 
-// 	    return d.y(); })
-// 	.attr('r', how_far_to_walk() / 32)
-// 	.attr("fill","#196E82")
-// 	.attr("stroke","black");
+// drag stuff
 
-//     map.setMaxBounds(
-// 	L.latLngBounds(corners_of_map.map(function(d){
-// 	    return new L.LatLng(d[0],d[1]);})))
+function dragstarted(d) {
+  d3.event.sourceEvent.stopPropagation();
+  d3.select(this).classed("dragging", true);
 
-//     geo_json = data2geo_json(data);
-//     number_of_choices = 1; // global variable to keep track of how
-// 			   // many times i've recolored tiles. This
-// 			   // will ensure that the last tile has the
-// 			   // biggest top value, so it'll be on top.
-    
-//     var mouseover_enabled = true;
+}
 
-//     var feature = g.selectAll("path")
-//     	.data(geo_json.features)
-//     	.enter().append("path")
-//         .attr("clip-path", 
-// 	      function(d,i) { return "url(#clip-"+i+")"; })
-// 	// .style("fill", function(d){
-// 	//     return colorScale(d.in_out);})
-//        .on("click", on_click)         
-// 	.on("mouseover", on_mouseover); 
-//     // mouse_over works inititally, until there's been a click. When
-//     // there's been a click -- mouse_over is disabled.
+function dragged(d) {
+  d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+  mean_distance(d);
+}
 
-//     map.on("viewreset", reset);
-//     reset();
+function dragended(d) {
+  d3.select(this).classed("dragging", false);
+}
 
-//     function on_mouseover(d,i){
-// 	var that = this;
-// 	if (mouseover_enabled){
-// 	    color_tiles(d,i,that);
-// 	}
-//     }
+function mean_distance(d) {
+    // calculates the mean distance from all other red points, weighted b
+    // number of data scientists d is an object: d.x = number, d.y =
+    // number  points is a list of objects. each obj has x and 
+    //  attribute. multiples, .e.i Ann Arbor, are listed multiple times.
+    var total_distance = _.reduce(points, function(memo, point){ 
+    			var distance = point.count * distance_formula(point,d)
+    			return memo + distance; }, 0);
+    console.log(Math.round(total_distance / 50));
+    $("#distance_traveled").html((total_distance/50).toFixed(1))
+}
 
-//     function on_click(d,i){
-// 	var that = this;
-// 	mouseover_enabled = !mouseover_enabled;
-// 	color_tiles(d,i,that);
-//     }
+function distance_formula(a,b) {
+		var first = point2latLng(a.x,a.y);
+		var second = point2latLng(b.x,b.y);
+		return getDistanceFromLatLonInKm(first.lat, first.lng, second.lat, second.lng);
 
-//     function color_tiles(geo_feature,index,that){
-// 	// update scale and recolors tiles according to dynamic scale
-// 	geo_feature.properties.top = number_of_choices++;
-	
-// 	station_detail.selectAll("text").remove();
-// 	station_detail
-// 	    .append("text")
-// 	    .text(geo_feature.properties.name);
+    // return Math.pow( (Math.pow( (b.x - a.x), 2) + Math.pow( (b.y - a.y), 2) ), 0.5) 
+}
 
-// 	var extent = d3.extent(geo_feature.properties.outCounts);
-// 	colorScale = d3.scale.quantize()
-// 	    .domain(extent)
-// 	    .range(blues);
-// 	var small = extent[1]/6; //  *3/2;
-// 	var middle= small * 3;
-// 	var big   = extent[1];
-// 	var text_extent = [small,middle,big]
-// 	    .map(Math.round)
-// 	    .map(numberWithCommas)
-// 	svg_legend.selectAll("text")
-// 	    .data(text_extent)
-// 	    .text(function(d){return d;})
-// 	    .attr("y", side_length + 20) // /2+5)
-// 	    .attr("x", function(d,i){
-// 		return (padding + side_length)*i*2+side_length/2;})
-// 	    .attr("text-anchor", "middle");
+function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+  var R = 6371 * 0.621371; // Radius of the earth in miles
+  var dLat = deg2rad(lat2-lat1);  // deg2rad below
+  var dLon = deg2rad(lon2-lon1); 
+  var a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c; // Distance in miles
+  return d;
+}
 
-// 	// divvy: 5DBCD2
-// 	// darker 196E82
-// 	g.selectAll("path")
-// 	    .sort(function(a,b){ 
-// 		return a.properties.top-b.properties.top; })
-// 	    .style("stroke","white")
-// 	    .style("stroke-width",function(d){
-// 		if (geo_feature.properties.outCounts[d.properties.index]>small){
-// 		    return .3;
-// 		} else {
-// 		    return 0;
-// 		}
-// 	    });
-
-// 	d3.select(that)
-// 	    .style("stroke","black")
-// 	    .style("stroke-width","2.1");
-
-// 	g.selectAll("path")
-// 	    .style("fill", function(d){
-// 		return colorScale(geo_feature
-// 				  .properties
-// 				  .outCounts[d.properties.index]);
-// 	    }); // Assumes the ordering in outCounts matches the
-// 		// INITIAL ordering of the paths. This ordering can
-// 		// change, but index doesn't.
-
-// 	//d3.select("legend")
-// 	var top3_indices = argSort(geo_feature.properties.outCounts);
-// 	top3_originate = [];
-// 	_.each( top3_indices.sortIndices.slice(0,3), function(d,i) {
-// 	    top3_originate.push({
-// 		rank:i+1,
-// 		name:data[d].name,
-// 		count:top3_indices[i]
-// 	    });
-// 	});
-	
-// 	top3_terminate = data.map(function(d,i){
-// 	    return {name:d.name,
-// 		    count:$.parseJSON(d.outCounts)[geo_feature.properties.index]
-// 		   };})
-// 	    .sort(function(a,b){ return b.count - a.count})
-// 	    .slice(0,3)
-// 	_.each(top3_terminate, function(d,i){
-// 	    d.rank = i+1;
-// 	});
-
-// 	original_total = geo_feature.properties.outCounts
-// 	    .reduce(function(pv, cv) { return pv + cv; }, 0);
-// 	terminal_total = geo_json.features
-// 	    .map(function(x){
-// 		return x.properties.outCounts[geo_feature.properties.index]})
-// 	    .reduce(function(a,b){return a+b});
-
-// 	top3_originate.push({rank:"TOTAL",
-// 			     name:"all stations",
-// 			     count:original_total});
-// 	top3_terminate.push({rank:"TOTAL",
-// 			     name:"all stations",
-// 			     count:terminal_total});
-
-// 	$("span.station-name").html(geo_feature.properties.name)
-// 	update_table("terminate",top3_terminate,"to");
-// 	update_table("originate",top3_originate,"from");
-//     };
-
-//     function update_table(direction, data,text){
-// 	function td(stuff,class_name){
-// 	    class_name = class_name || "";
-// 	    return "<td class='"+class_name+"'>"+stuff+"</td>";
-// 	}
-// 	function span(stuff,class_name){
-// 	    class_name = class_name || "";
-// 	    return "<span class='"+class_name+"'>"+stuff+"</span>";
-// 	}
-// 	var html = ""
-
-// 	_.each(data, function(d){
-// 	    var tds = td(numberWithCommas(d.count),     "NTrips");
-// 	    tds +=    td("&nbsp;"+text+" "+nice_name(d),"RowStationName");
-// 	    html += "<tr>"+ tds +"</tr>";
-// 	});
-
-// 	$("#"+direction +">tbody").html(html)
-//     }
-
-//     function nice_name(d){
-// 	return d.name
-// 	    .replace(/ & /g,"/")
-// 	    .replace(/ St/g,"")
-// 	    .replace(/ Dr/g,"")
-// 	    .replace(/ Ave/g,"")
-// 	    .replace(/ Pkwy/g,"")
-// 	    .replace(/ Rd/g,"")
-// 	    .replace(/ Blvd/g,"")
-// 	    .replace(/ Way/g,"")
-// 	    .replace(/ Ln/g,"")
-// 	    .replace(/ Ct/g,"")
-// 	    .replace(/ Plaza/g,"")
-// 	    .replace(/ Pl/g,"")
-// 	    .replace(/Merchandise Mart/g,"MerchMart")
-//     }
-
-//     function reset(){
-// 	// even though geo_json doesn't change, since path is a
-// 	// function that depends on the map boundaries (zoom level,
-// 	// position), the path function needs to be reset
-// 	geo_json = data2geo_json(data);
-// 	feature.data(geo_json.features); // updates the features w new data
-	
-// 	var bounds      = path.bounds(geo_json);
-// 	var topLeft     = bounds[0];
-//     	var bottomRight = bounds[1];
-
-//     	svg .style("width", bottomRight[0] - topLeft[0] + "px")
-//     	    .style("height", bottomRight[1] - topLeft[1] + "px")
-//     	    .style("left", topLeft[0] + "px")
-//     	    .style("top", topLeft[1] + "px")
-	
-//     	g   .attr("transform", 
-//     		  "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
-
-// 	// update the coordinates of the voronoi polygons
-// 	feature.attr("d",path);
-
-// 	// update the coordinates of the circles
-// 	clips.selectAll("circle")
-// 	    .attr('cx', function(d) { 
-// 		return d.x(); })
-// 	    .attr('cy', function(d) { 
-// 		return d.y(); })
-// 	    .attr('r', how_far_to_walk());
-	
-// 	g.selectAll(".centers")
-// 	    .attr("class","centers")
-// 	    .attr('cx', function(d) { 
-// 		return d.x(); })
-// 	    .attr('cy', function(d) { 
-// 		return d.y(); })
-// 	    .attr('r', how_far_to_walk() /32)
-// 	    .attr("fill","#196E82")
-// 	    .attr("stroke","black");
-//     };
-// })
-
-// function argSort(toSort) {
-//     var out = new Array(300);
-//     for (var i = 0; i < toSort.length; i++) {
-// 	out[i] = [toSort[i], i];
-//     }
-//     out.sort(function(a, b)
-// 	     {
-// 		 return b[0]-a[0];	
-// 	     });
-//     // out.map(function(x){return x[1];});
-
-//     out.sortIndices = [];
-//     for (var j = 0; j < toSort.length; j++) {
-// 	out.sortIndices.push(out[j][1]);
-// 	out[j] = out[j][0];
-//     }
-//     return out;
-// }
-
-// function numberWithCommas(x) {
-//     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-// }
-
-var mapmargin = 70;
-$(window).on("resize", resize);
-resize();
-function resize(){
-
-    if($(window).width()>=980){
-        $('#map_wrapper').css("padding-left", mapmargin);
-    }else{
-        $('#map_wrapper').css("padding-left", 0);
-    }
-
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
 }

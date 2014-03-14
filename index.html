@@ -10,15 +10,27 @@
   <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
   <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
   <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.2/leaflet.css">
-
+	<link rel="stylesheet" href="http://rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
 </head>
 <body>
-  <div id="map" class="col-md-6"></div>
-
+	<div class="row">
+	  <div id="map" class="col-md-6"></div>
+		<div class="row" id="legend_row">
+	  	<div id="legend" class="col-md-6"></div>
+		</div>
+		<div class="row">
+	  	<div id="distance" class="col-md-3">
+	  		Average distance traveled: <p><span id="distance_traveled">17.0</span> miles </p>
+	  		<p></p>
+		  	<p>Drag the green dot around to view average travel distances for all Meetup data scientists. </p>
+	  	</div>
+		</div>
+	</div>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.2/leaflet.js"></script>
   <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.4"></script>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.3.11/d3.min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.6.3/d3-tip.min.js"></script>
   <script src="http://d3js.org/colorbrewer.v1.min.js"></script>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
   <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>

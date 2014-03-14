@@ -1,3 +1,7 @@
-data/city_names.json,cff848bc6807513599a85911a8be2f0af3b40eaf
+data/centroids.json,fdf7aaca7c6d69101a5a80588a21e9e0b5964fce
 config:data/city_names.json,55d8674d08c7b372ed9a18f62e2b6b970836e54c
-config:js/data.js,47f9c962bfac708c814bc4a1db8ea7f76887d1ec
+data/city_names.json,cff848bc6807513599a85911a8be2f0af3b40eaf
+config:js/data.js,186571a2be0a44bec49a73ed8b07372d5a52e20a
+data/single_centroid.json,508c13f66dbefdb0f74aa28836d2a8edf2aede19
+config:data/single_centroid.json,3162be9366b3c4ddb3cab1afb3b15b47615ef7bc
+config:data/centroids.json,285efcec4ccc2e99927423aec1ebc6d103b79c61

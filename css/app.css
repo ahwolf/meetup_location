@@ -4,3 +4,21 @@
 svg {
 	width:700px;
 }
+
+.dragging {
+	fill:rgba(0,255,0,1);
+}
+#legend_row{
+	height:200px;
+}
+#distance{
+	margin-left: 10px;
+}
+#distance_traveled{
+	font-size: 70px;
+}
+
+.dragging{
+	stroke:rgb(96,96,96);
+	stroke-width: 4px;
+}
